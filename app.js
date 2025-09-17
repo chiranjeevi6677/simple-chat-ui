@@ -1,6 +1,11 @@
 const messages = document.getElementById("chat-messages");
 const input = document.getElementById("chat-input");
 const sendBtn = document.getElementById("send-btn");
+const chatContainer = document.getElementById("chat-container");
+const chatToggle = document.getElementById("chat-toggle");
+const chatClose = document.getElementById("chat-close");
+
+let isOpen = false;
 
 function addMessage(text, isUser = true) {
   const msg = document.createElement("div");
@@ -79,6 +84,26 @@ async function handleSendMessage() {
   sendBtn.disabled = false;
 }
 
+// Toggle chat functions
+function openChat() {
+  isOpen = true;
+  chatContainer.classList.add('open');
+  input.focus();
+}
+
+function closeChat() {
+  isOpen = false;
+  chatContainer.classList.remove('open');
+}
+
+function toggleChat() {
+  if (isOpen) {
+    closeChat();
+  } else {
+    openChat();
+  }
+}
+
 // Initialize chat
 function initializeChat() {
   // Clear connecting message
@@ -90,6 +115,10 @@ function initializeChat() {
   input.addEventListener("keypress", e => {
     if (e.key === "Enter") handleSendMessage();
   });
+  
+  // Toggle functionality
+  chatToggle.addEventListener("click", toggleChat);
+  chatClose.addEventListener("click", closeChat);
 }
 
 // Initialize when DOM is ready
