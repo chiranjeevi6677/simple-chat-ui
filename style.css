@@ -134,7 +134,7 @@
 /* Mobile responsiveness */
 @media (max-width: 480px) {
   #chat-container {
-    bottom: 10px;
+    bottom: 85px;
     right: 10px;
     left: 10px;
     width: auto;
