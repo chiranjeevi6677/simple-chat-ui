@@ -119,6 +119,13 @@ function initializeChat() {
   // Toggle functionality
   chatToggle.addEventListener("click", toggleChat);
   chatClose.addEventListener("click", closeChat);
+  
+  // Close on outside click
+  document.addEventListener("click", (e) => {
+    if (isOpen && !chatContainer.contains(e.target) && !chatToggle.contains(e.target)) {
+      closeChat();
+    }
+  });
 }
 
 // Initialize when DOM is ready

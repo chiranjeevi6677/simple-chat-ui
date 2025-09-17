@@ -1,9 +1,4 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background: black;
-}
+/* Widget styles only - no body modifications to avoid affecting host website */
 
 #chat-toggle {
   position: fixed;
@@ -18,7 +13,8 @@ body {
   font-size: 24px;
   cursor: pointer;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  z-index: 1000;
+  z-index: 999999;
+  font-family: Arial, sans-serif;
 }
 
 #chat-toggle:hover {
@@ -38,6 +34,8 @@ body {
   display: none;
   flex-direction: column;
   overflow: hidden;
+  z-index: 999998;
+  font-family: Arial, sans-serif;
 }
 
 #chat-container.open {
