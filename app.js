@@ -15,47 +15,88 @@ function addMessage(text, isUser = true) {
   messages.scrollTop = messages.scrollHeight;
 }
 
-// Enhanced AI responses
+// MetrAI API integration
+let conversationId = null;
+let sessionId = 'session_' + Date.now();
+
+async function createConversation() {
+  try {
+    const response = await fetch('https://metrai.met-r.io/api/v1/conversations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ domain: 'medical' })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      conversationId = data.id || Math.floor(Math.random() * 1000);
+    } else {
+      conversationId = Math.floor(Math.random() * 1000);
+    }
+  } catch (error) {
+    conversationId = Math.floor(Math.random() * 1000);
+  }
+}
+
 async function getGroqResponse(userMessage) {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  const lowerMessage = userMessage.toLowerCase();
-  
-  // Programming languages
-  if (lowerMessage.includes('python')) {
-    return 'Python is a popular programming language known for its simple syntax and readability. It\'s great for beginners and used in web development, data science, AI, and automation.';
+  try {
+    // Create conversation if not exists
+    if (!conversationId) {
+      await createConversation();
+    }
+    
+    const response = await fetch('https://metrai.met-r.io/api/v1/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        query: userMessage,
+        domain: 'medical',
+        limit: 10,
+        conversation_id: conversationId
+      })
+    });
+    
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.log('Non-JSON response received:', await response.text());
+      throw new Error('Invalid response format');
+    }
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data.answer || data.response || 'I\'m here to help with your medical questions.';
+    } else {
+      const errorText = await response.text();
+      console.log('API Error Response:', errorText);
+      throw new Error(`API Error: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('MetrAI API error:', error);
+    // Fallback responses
+    const fallbacks = {
+      'hi': 'Hello! I\'m a medical AI assistant. How can I help you today?',
+      'hello': 'Hi there! I can help with medical questions. What would you like to know?',
+      'help': 'I\'m here to assist with medical information and health-related questions.',
+      'thanks': 'You\'re welcome! Feel free to ask me any medical questions.',
+      'bye': 'Take care! Remember to consult healthcare professionals for serious concerns.'
+    };
+    
+    const key = userMessage.toLowerCase();
+    for (const [keyword, response] of Object.entries(fallbacks)) {
+      if (key.includes(keyword)) {
+        return response;
+      }
+    }
+    
+    return 'I\'m having trouble connecting to the medical database. Please try again or ask a specific health question.';
   }
-  if (lowerMessage.includes('javascript')) {
-    return 'JavaScript is a programming language that runs in web browsers and servers. It\'s used to make websites interactive and build web applications.';
-  }
-  if (lowerMessage.includes('java')) {
-    return 'Java is a robust, object-oriented programming language used for building enterprise applications, Android apps, and web services.';
-  }
-  
-  // Greetings
-  if (lowerMessage.includes('hi') || lowerMessage.includes('hello')) {
-    return 'Hello! I\'m an AI assistant. How can I help you today?';
-  }
-  
-  // Common questions
-  if (lowerMessage.includes('how are you')) {
-    return 'I\'m doing great! Thanks for asking. How are you?';
-  }
-  if (lowerMessage.includes('help')) {
-    return 'I\'m here to help! You can ask me about programming, technology, or general questions.';
-  }
-  if (lowerMessage.includes('joke')) {
-    return 'Why don\'t scientists trust atoms? Because they make up everything! 😄';
-  }
-  if (lowerMessage.includes('bye')) {
-    return 'Goodbye! It was nice chatting with you!';
-  }
-  if (lowerMessage.includes('thanks')) {
-    return 'You\'re welcome! Feel free to ask me anything else.';
-  }
-  
-  // Default intelligent response
-  return `I understand you\'re asking about "${userMessage}". While I don\'t have specific information about that right now, I\'d be happy to help you explore the topic further. Could you be more specific about what you\'d like to know?`;
 }
 
 async function handleSendMessage() {
@@ -108,7 +149,7 @@ function toggleChat() {
 function initializeChat() {
   // Clear connecting message
   messages.innerHTML = "";
-  addMessage("Hi! How can I help you today?", false);
+  addMessage("Hello! I'm your Medical AI Assistant. Ask me about symptoms, conditions, or health information.", false);
   
   // Setup event listeners
   sendBtn.addEventListener("click", handleSendMessage);
